@@ -1,0 +1,37 @@
+layer,job_typ,source,target,catalog_name,schema_name,ref_table,seq_no,is_active
+gold,dedup,,gold_hcp_data,workspace,healthintel360,"first_name, last_name, npi",10,Y
+gold,dedup,,gold_site_master,workspace,healthintel360,"site_name, address",20,Y
+gold,dedup,,gold_product_sales,workspace,healthintel360,"sale_id, hcp_id, product_id, units_sold",30,Y
+gold,dedup,,gold_shipment_data,workspace,healthintel360,"shipment_id, site_id, product_id, delay_days",40,Y
+gold,dedup,,gold_hcp_feedback,workspace,healthintel360,"hcp_id, product_id, rating",50,Y
+gold,dedup,,gold_product_ref,workspace,healthintel360,"product_id, product_name, category",60,Y
+gold,ingest,stage_hcp_data,gold_hcp_data,workspace,healthintel360,hcp_id,1,Y
+gold,ingest,stage_site_master,gold_site_master,workspace,healthintel360,site_id,2,Y
+gold,ingest,stage_product_sales,gold_product_sales,workspace,healthintel360,sale_id,3,Y
+gold,ingest,stage_shipment_data,gold_shipment_data,workspace,healthintel360,shipment_id,4,Y
+gold,ingest,stage_hcp_feedback,gold_hcp_feedback,workspace,healthintel360,"hcp_id, product_id, comment",5,Y
+gold,ingest,stage_product_ref,gold_product_ref,workspace,healthintel360,product_id,6,Y
+silver,stage,dq_hcp_data,stage_hcp_data,workspace,healthintel360,hcp_id,1,Y
+silver,stage,dq_site_master,stage_site_master,workspace,healthintel360,site_id,2,Y
+silver,stage,dq_product_sales,stage_product_sales,workspace,healthintel360,sale_id,3,Y
+silver,stage,dq_shipment_data,stage_shipment_data,workspace,healthintel360,shipment_id,4,Y
+silver,stage,dq_product_ref,stage_product_ref,workspace,healthintel360,product_id,6,Y
+silver,dq,std_hcp_data,dq_hcp_data,workspace,healthintel360,dq_rule_config,1,Y
+silver,dq,std_site_master,dq_site_master,workspace,healthintel360,dq_rule_config,2,Y
+silver,dq,std_product_sales,dq_product_sales,workspace,healthintel360,dq_rule_config,3,Y
+silver,dq,std_shipment_data,dq_shipment_data,workspace,healthintel360,dq_rule_config,4,Y
+silver,dq,std_hcp_feedback,dq_hcp_feedback,workspace,healthintel360,dq_rule_config,5,Y
+silver,dq,std_product_ref,dq_product_ref,workspace,healthintel360,dq_rule_config,6,Y
+silver,std,cleansed_product_sales,std_product_sales,workspace,healthintel360,ref_data,3,Y
+silver,std,cleansed_shipment_data,std_shipment_data,workspace,healthintel360,ref_data,4,Y
+silver,std,cleansed_hcp_feedback,std_hcp_feedback,workspace,healthintel360,ref_data,5,Y
+silver,std,cleansed_product_ref,std_product_ref,workspace,healthintel360,ref_data,6,Y
+silver,stage,dq_hcp_feedback,stage_hcp_feedback,workspace,healthintel360,"hcp_id, product_id, comment",5,Y
+silver,cleanse,product_sales,cleansed_product_sales,workspace,healthintel360,cleansing_rules,3,Y
+silver,cleanse,shipment_data,cleansed_shipment_data,workspace,healthintel360,cleansing_rules,4,Y
+silver,cleanse,hcp_feedback,cleansed_hcp_feedback,workspace,healthintel360,cleansing_rules,6,Y
+silver,cleanse,product_ref,cleansed_product_ref,workspace,healthintel360,cleansing_rules,2,Y
+silver,cleanse,site_master,cleansed_site_master,workspace,healthintel360,cleansing_rules,5,Y
+silver,cleanse,hcp_data,cleansed_hcp_data,workspace,healthintel360,cleansing_rules,1,Y
+silver,std,cleansed_site_master,std_site_master,workspace,healthintel360,ref_data,2,Y
+silver,std,cleansed_hcp_data,std_hcp_data,workspace,healthintel360,ref_data,1,Y

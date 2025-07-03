@@ -1,0 +1,24 @@
+table_name,column_name,rule_type,rule_condition,rule_desc,is_active
+std_hcp_data,hcp_id,NOT_NULL,,HCP ID must not be null,Y
+std_hcp_data,first_name,NOT_NULL,,First Name must not be null,Y
+std_hcp_data,last_name,NOT_NULL,,Last Name must not be null,Y
+std_hcp_data,phone,REGEX,^[0-9]{10}$,Phone must be in valid 10-digit format,Y
+std_hcp_data,specialty,VALID_SET,"CARDIOLOGY,NEUROLOGY,ONCOLOGY,ENDOCRINOLOGY,INTERNAL_MEDICINE,PEDIATRICS",Specialty must be a valid type,Y
+std_product_sales,sale_id,NOT_NULL,,Sale ID must not be null,Y
+std_product_sales,hcp_id,NOT_NULL,,HCP ID must not be null,Y
+std_product_sales,product_id,NOT_NULL,,Product ID must not be null,Y
+std_product_sales,units_sold,REGEX,^[0-9]+$,Units Sold must be numeric,Y
+std_product_ref,product_id,NOT_NULL,,Product ID must not be null,Y
+std_product_ref,product_name,NOT_NULL,,Product Name must not be null,Y
+std_shipment_data,shipment_id,NOT_NULL,,Shipment ID must not be null,Y
+std_shipment_data,site_id,NOT_NULL,,Site ID must not be null,Y
+std_shipment_data,delay_days,CUSTOM_EXPR,delay_days >= 0,Delay days must be non-negative,Y
+std_hcp_data,region,VALID_SET,"NORTH,SOUTH,EAST,WEST",Region must be valid,Y
+std_site_master,region,VALID_SET,"NORTH,SOUTH,EAST,WEST",Region must be valid,Y
+std_product_sales,region,VALID_SET,"NORTH,SOUTH,EAST,WEST",Region must be valid,Y
+std_site_master,site_id,NOT_NULL,,Site ID must not be null,Y
+std_site_master,site_name,NOT_NULL,,Site Name must not be null,Y
+std_hcp_feedback,hcp_id,NOT_NULL,,HCP ID must not be null,Y
+std_hcp_feedback,product_id,NOT_NULL,,Product ID must not be null,Y
+std_hcp_feedback,rating,VALID_SET,"1,2,3,4,5",Rating must be between 1 to 5,Y
+std_product_ref,category,VALID_SET,"ONCOLOGY,CARDIO,DIABETES,NEURO",Category must be valid,Y

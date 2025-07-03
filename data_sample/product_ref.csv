@@ -1,0 +1,11 @@
+product_id,product_name,category,launch_date
+PROD1,Drug-KXGS,Oncology,2024-08-10
+PROD2,Drug-NYDY,Neuro,2024-05-14
+PROD3,Drug-SDBP,Cardio,2024-05-23
+PROD4,Drug-MYRM,Neuro,2024-08-22
+PROD5,Drug-TEZH,Diabetes,2023-07-29
+PROD6,Drug-GACU,Diabetes,2023-12-08
+PROD7,Drug-TSRF,Neuro,2023-11-19
+PROD8,Drug-FPIM,Oncology,2023-06-26
+PROD9,Drug-CNBC,Diabetes,2023-09-29
+PROD10,Drug-BKPN,Cardio,2024-06-16

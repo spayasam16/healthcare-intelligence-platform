@@ -1,0 +1,82 @@
+name,table_name,sql_txt,seq_no,is_active
+Load BI Table,workspace.healthintel360_publish.bi_hcp_activity_scorecard,"
+insert into {table_name} (hcp_id, specialty, region, total_sales, total_feedbacks, avg_rating, first_engaged_dt, last_engaged_dt, engagement_score, active_flag)
+select a.hcp_id, a.specialty, a.region, b.total_sales, c.total_feedbacks, c.avg_rating, b.first_engaged_dt, b.last_engaged_dt, 
+ROUND((0.4 * (c.avg_rating / 5.0) + 0.3 * (b.total_sales / b.max_sales) + 0.3 * (c.total_feedbacks / c.max_feedbacks)) * 100, 2) as engagement_score, case when a.active_flag = 'ACTIVE' Then 'Y' ELSE 'N' END as active_flag
+from workspace.healthintel360.gold_hcp_data a
+left join (select hcp_id, sum(units_sold) as total_sales, max(units_sold) as max_sales, date(min(sale_date)) as first_engaged_dt, date(max(sale_date)) as last_engaged_dt from workspace.healthintel360.gold_product_sales group by hcp_id) b on b.hcp_id = a.hcp_id
+left join (select hcp_id, count(rating) as total_feedbacks, round(avg(rating), 2) as avg_rating, max(rating) as max_feedbacks from workspace.healthintel360.gold_hcp_feedback group by hcp_id) c on c.hcp_id = a.hcp_id
+",6,Y
+Load BI Table,workspace.healthintel360_publish.bi_top_delayed_products,"
+insert into {table_name} (product_id, product_name, avg_delay, total_delays, region)
+with del_region as (select a.product_id, region, RANK() OVER (PARTITION BY a.product_id ORDER BY sum(case when delay_days <> 0 THEN 1 ELSE 0 END) DESC) AS rank
+from workspace.healthintel360.gold_shipment_data a
+left join workspace.healthintel360.gold_site_master b on b.site_id = a.site_id
+group by product_id, region)
+select a.product_id, c.product_name, round(avg(a.delay_days), 2) as avg_delay, sum(case when delay_days <> 0 THEN 1 ELSE 0 END) as total_delays, 
+CONCAT_WS(' & ', COLLECT_LIST(distinct b.region)) as region
+from workspace.healthintel360.gold_shipment_data a
+left join del_region b on b.product_id = a.product_id and b.rank = 1
+left join workspace.healthintel360.gold_product_ref c on c.product_id = a.product_id
+group by a.product_id, c.product_name
+",5,Y
+Load BI Table,workspace.healthintel360_publish.bi_product_performance,"
+insert into {table_name} (product_id, product_name, category, total_units_sold, avg_rating, num_feedbacks, total_hcps_engaged, last_sale_date, active_flag)
+select 
+pref.product_id, pref.product_name, pref.category, psal.total_units_sold, pfdb.avg_rating, pfdb.num_feedbacks, pfdb.total_hcps_engaged, psal.last_sale_date, 'Y' as active_flag from workspace.healthintel360.gold_product_ref pref
+left join (select product_id, sum(units_sold) as total_units_sold, date(max(sale_date)) as last_sale_date from workspace.healthintel360.gold_product_sales group by product_id) psal on psal.product_id = pref.product_id
+left join (select product_id, round(avg(rating), 2) as avg_rating, count(rating) as num_feedbacks, count(distinct hcp_id) as total_hcps_engaged from workspace.healthintel360.gold_hcp_feedback group by product_id) pfdb on pfdb.product_id = pref.product_id
+",1,Y
+Load BI Table,workspace.healthintel360_publish.bi_product_issue_monitor,"
+insert into {table_name} (product_id, product_name, total_negative_ratings, total_delayed_shipments, avg_delay_days, last_reported_issue)
+select a.product_id, a.product_name, b.total_negative_ratings, c.total_delayed_shipments, c.avg_delay_days, c.last_reported_issue  from 
+workspace.healthintel360.gold_product_ref a
+left join (select product_id, count(rating) as total_negative_ratings 
+from workspace.healthintel360.gold_hcp_feedback where rating <= 2 group by product_id) b on b.product_id = a.product_id
+left join (select product_id, count(delay_days) as total_delayed_shipments, round(avg(delay_days), 2) as avg_delay_days, date(max(actual_delivery)) as last_reported_issue from workspace.healthintel360.gold_shipment_data where delay_days > 0 group by product_id) c on c.product_id = a.product_id
+",7,Y
+Load BI Table,workspace.healthintel360_publish.bi_patient_impact_score,"
+insert into {table_name} (product_id, product_name, impact_score, last_sale_date)
+select a.product_id, a.product_name, ROUND((b.units_sold * c.avg_rating) / (d.avg_delay_days + 1), 2) as impact_score, b.last_sale_date
+from workspace.healthintel360.gold_product_ref a
+left join (select product_id, sum(units_sold) as units_sold, date(max(sale_date)) as last_sale_date from workspace.healthintel360.gold_product_sales group by product_id) b on b.product_id = a.product_id
+left join (select product_id, round(avg(rating)) as avg_rating from workspace.healthintel360.gold_hcp_feedback group by product_id) c on c.product_id = a.product_id
+left join (select product_id, round(avg(delay_days)) as avg_delay_days from workspace.healthintel360.gold_shipment_data group by product_id) d on d.product_id = a.product_id
+",10,Y
+Load BI Table,workspace.healthintel360_publish.bi_hcp_engagement,"
+insert into {table_name} (hcp_id, full_name, specialty, region, total_sales, avg_rating, feedback_count, active_flag)
+select hcp.hcp_id, hcp.first_name||' '||hcp.last_name as full_name, hcp.specialty, hcp.region,
+psal.total_sales, pfdb.avg_rating, pfdb.feedback_count, case when hcp.active_flag = 'ACTIVE' THEN 'Y' ELSE 'N' END as active_flag
+from workspace.healthintel360.gold_hcp_data hcp
+left join (select hcp_id, sum(units_sold) as total_sales from workspace.healthintel360.gold_product_sales group by hcp_id) psal on psal.hcp_id = hcp.hcp_id
+left join (select hcp_id, round(avg(rating), 2) as avg_rating, count(rating) as feedback_count from workspace.healthintel360.gold_hcp_feedback group by hcp_id) pfdb on pfdb.hcp_id = hcp.hcp_id
+",3,Y
+Load BI Table,workspace.healthintel360_publish.bi_product_feedback_trends,"
+insert into {table_name} (product_id, product_name, sale_date, avg_rating, num_feedbacks)
+select pref.product_id, pref.product_name, pfdb.sale_date, pfdb.avg_rating, pfdb.num_feedbacks  from 
+workspace.healthintel360.gold_product_ref pref
+left join (select a.product_id, date(a.sale_date), round(avg(b.rating), 2) as avg_rating, count(rating) as num_feedbacks 
+from workspace.healthintel360.gold_product_sales a
+join workspace.healthintel360.gold_hcp_feedback b on b.hcp_id = a.hcp_id and b.product_id = a.product_id
+group by a.product_id, a.sale_date) pfdb on pfdb.product_id = pref.product_id
+",4,Y
+Load BI Table,workspace.healthintel360_publish.bi_shipment_delays_by_region,"
+insert into {table_name} (region, product_id, avg_delay_days, num_shipments, delayed_shipments, latest_delivery)
+select region, product_id, round(avg(delay_days), 2) as avg_delay_days, count(shipment_id) as num_shipments,
+SUM(CASE WHEN delay_days <> 0 THEN 1 ELSE 0 END) AS delayed_shipments, max(actual_delivery) as latest_delivery
+from (
+select product_id, delay_days, shipment_id, date(actual_delivery), region from workspace.healthintel360.gold_shipment_data a
+join workspace.healthintel360.gold_site_master b on a.site_id = b.site_id) group by region, product_id
+",2,Y
+Load BI Table,workspace.healthintel360_publish.bi_product_sales_timeline,"
+insert into {table_name} (product_id, product_name, SALE_YEAR, SALE_MONTH, total_units, num_hcps, region)
+select a.product_id, a.product_name, b.SALE_YEAR, b.SALE_MONTH, b.total_units, b.num_hcps, b.region from 
+workspace.healthintel360.gold_product_ref a
+left join (select product_id, year(date(sale_date)) as SALE_YEAR, UPPER(DATE_FORMAT(date(sale_date), 'MMM')) as SALE_MONTH, sum(units_sold) as total_units, count(distinct hcp_id) as num_hcps, region from workspace.healthintel360.gold_product_sales group by product_id, sale_date, region) b on b.product_id = a.product_id
+",9,Y
+Load BI Table,workspace.healthintel360_publish.bi_site_performance,"
+insert into {table_name} (site_id, site_name, region, total_shipments, avg_delay_days, on_time_rate)
+select a.site_id, a.site_name, a.region, b.total_shipments, b.avg_delay_days, ROUND((b.on_time_shipments / b.total_shipments) * 100, 2) as on_time_rate
+from workspace.healthintel360.gold_site_master a
+left join (select site_id, count(delay_days) as total_shipments, round(avg(delay_days)) as avg_delay_days, sum(case when delay_days = 0 THEN 1 else 0 end) as on_time_shipments from workspace.healthintel360.gold_shipment_data group by site_id) b on b.site_id = a.site_id
+",8,Y

@@ -1,0 +1,7 @@
+layer,table_name,file_path,file_format,catalog_name,schema_name,infer_schema,has_header,seq_no,is_active
+bronze,shipment_data,/Volumes/workspace/healthintel360/inputdata/shipment_data.csv,csv,workspace,healthintel360,true,true,4,Y
+bronze,hcp_feedback,/Volumes/workspace/healthintel360/inputdata/hcp_feedback.json,json,workspace,healthintel360,true,true,6,Y
+bronze,product_sales,/Volumes/workspace/healthintel360/inputdata/product_sales.csv,csv,workspace,healthintel360,true,true,3,Y
+bronze,product_ref,/Volumes/workspace/healthintel360/inputdata/product_ref.csv,csv,workspace,healthintel360,true,true,2,Y
+bronze,site_master,/Volumes/workspace/healthintel360/inputdata/site_master.csv,csv,workspace,healthintel360,true,true,5,Y
+bronze,hcp_data,/Volumes/workspace/healthintel360/inputdata/hcp_data.csv,csv,workspace,healthintel360,true,true,1,Y
